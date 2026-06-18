@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "seed": "tsx src/seed.ts"
+
   },
   "keywords": [],
   "author": "",
@@ -12,11 +14,18 @@
   "type": "module",
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "ts-node-dev": "^2.0.0",
     "tsx": "^4.22.4"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "mongoose": "^9.7.0"
+    "mongoose": "^9.7.0",
+    "zod": "^4.4.3"
   }
 }

@@ -70,10 +70,7 @@ export const Reservation = mongoose.model("Reservation", ReservationSchema);
 
 export async function connectToMongoDB() {
   try {
-    if (!Dburl) {
-      process.exit(1);
-    }
-    await mongoose.connect(Dburl);
+    await mongoose.connect(process.env.MONGODB_URL!);
     console.log("connected to database");
   } catch (e) {
     console.log("Error occurred", e);
