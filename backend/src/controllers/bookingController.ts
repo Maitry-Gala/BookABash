@@ -1,6 +1,6 @@
 import { Response } from "express";
 import mongoose from "mongoose";
-import { Seat, Reservation } from "../config/db.js";
+import { Seat, Reservation, Booking } from "../config/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { AuthRequest } from "../middleware/auth.js";
 import { z } from "zod";
@@ -72,6 +72,7 @@ export const confirmBooking = asyncHandler(async (req: AuthRequest, res: Respons
       return;
     }
 
+    const [booking] = await Booking.create([{ userId, eventId, seatNumbers}],{session});
     // delete reservation doc — seats are now permanently booked
     await Reservation.deleteOne({ _id: reservationId }).session(session);
 
@@ -80,10 +81,11 @@ export const confirmBooking = asyncHandler(async (req: AuthRequest, res: Respons
     res.status(200).json({
       success: true,
       message: "Booking confirmed",
+      bookingId: booking?._id,
       data: {
         eventId,
         seatNumbers,
-        bookedAt: new Date(),
+        bookedAt: booking?.createdAt,
       },
     });
   } catch (err) {

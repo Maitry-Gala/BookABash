@@ -11,10 +11,10 @@ export const authenticate = (
   next: NextFunction,
 ) => {
   const token = req.headers.authorization?.split(" ")[1];
+  console.log(token);
 
   if (!token) {
-    res.status(401).json({ success: false, message: "No token provided" });
-    return;
+    return res.status(401).json({ success: false, message: "No token provided" });
   }
 
   try {
@@ -22,7 +22,7 @@ export const authenticate = (
     req.userId = decoded.userId;
     next();
   } catch {
-    res
+    return res
       .status(401)
       .json({ success: false, message: "Invalid or expired token" });
   }

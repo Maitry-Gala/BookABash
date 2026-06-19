@@ -54,7 +54,7 @@ const ReservationSchema = new Schema(
       ref: "Event",
       required: true,
     },
-    seatNumbers: { type: [Number], required: true }, 
+    seatNumbers: { type: [Number], required: true },
     expiresAt: { type: Date, required: true },
   },
   { timestamps: true },
@@ -63,10 +63,29 @@ const ReservationSchema = new Schema(
 ReservationSchema.index({ userId: 1, eventId: 1 }, { unique: true });
 ReservationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
+const BookingSchema = new Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
+      required: true,
+    },
+    seatNumbers: { type: [Number], required: true },
+    bookedAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true },
+);
+
 export const User = mongoose.model("User", UserSchema);
 export const Event = mongoose.model("Event", EventSchema);
 export const Seat = mongoose.model("Seat", SeatSchema);
 export const Reservation = mongoose.model("Reservation", ReservationSchema);
+export const Booking = mongoose.model("Booking", BookingSchema);
 
 export async function connectToMongoDB() {
   try {
