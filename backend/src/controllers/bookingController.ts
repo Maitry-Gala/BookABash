@@ -81,7 +81,7 @@ export const confirmBooking = asyncHandler(async (req: AuthRequest, res: Respons
     res.status(200).json({
       success: true,
       message: "Booking confirmed",
-      bookingId: booking?._id,
+      bookingId: booking?._id.toString(),
       data: {
         eventId,
         seatNumbers,

@@ -7,6 +7,7 @@ import eventRoutes from "./routes/events.js";
 import reservationRoutes from "./routes/reservation.js";
 import  bookingRoutes from "./routes/bookings.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { Reservation, Seat } from "./config/db.js";
 const PORT = process.env.PORT;
 
 const app = express();
@@ -26,6 +27,18 @@ app.get("/health", (req, res) => {
 
 // error handler — must be last
 app.use(errorHandler);
+
+// runs every minute, resets seats whose reservations have expired
+setInterval(async () => {
+  const expired = await Reservation.find({ expiresAt: { $lt: new Date() } });
+  for (const res of expired) {
+    await Seat.updateMany(
+      { eventId: res.eventId, seatNumber: { $in: res.seatNumbers } },
+      { $set: { status: "available" } }
+    );
+    await Reservation.deleteOne({ _id: res._id });
+  }
+}, 60 * 1000);
 
 connectToMongoDB().then(() => {
   app.listen(PORT, () => {
