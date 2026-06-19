@@ -1,3 +1,54 @@
+# BookABash — Event Ticket Booking App
+
+A simplified event ticket booking system with seat reservation, countdown timers, and booking confirmation.
+
+---
+
+## Tech Stack
+
+**Backend:** Node.js, Express, TypeScript, MongoDB, Mongoose  
+**Frontend:** React, TypeScript, Tailwind CSS, Vite, Axios
+
+---
+
+## Getting Started
+
+---
+
+### Backend
+
+```bash
+cd backend
+npm install
+```
+
+Create a `.env` file reference to env.exammple 
+
+Seed the database with sample events:
+
+```bash
+npm run seed
+```
+
+Start the server:
+
+```bash
+npm run dev
+```
+
+Server runs at `http://localhost:3000`
+
+---
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Create a `.env` file reference to env.exammple 
+
 ## Assumptions
 
 * No payment flow — booking confirmation is the final step
