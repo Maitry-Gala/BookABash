@@ -28,7 +28,6 @@ app.get("/health", (req, res) => {
 // error handler — must be last
 app.use(errorHandler);
 
-
 async function main() {
   await connectToMongoDB();
 
