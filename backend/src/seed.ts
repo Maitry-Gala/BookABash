@@ -6,16 +6,10 @@ import { connectToMongoDB, Event, Seat } from "./config/db.js";
 
 const events = [
   {
-    name: "Coldplay World Tour",
-    dateTime: new Date("2025-12-15T19:00:00"),
-    venue: "DY Patil Stadium, Mumbai",
-    totalSeats: 20,
-  },
-  {
-    name: "Comic Con Mumbai",
-    dateTime: new Date("2025-11-20T10:00:00"),
+    name: "India's got latent s2",
+    dateTime: new Date("2026-06-25T10:00:00"),
     venue: "Jio World Convention Centre",
-    totalSeats: 30,
+    totalSeats: 100,
   },
 ];
 

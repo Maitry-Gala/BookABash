@@ -9,6 +9,23 @@ const reserveSchema = z.object({
   eventId: z.string().min(1),
   seatNumbers: z.array(z.number().int().positive()).min(1).max(10),
 });
+export const scheduleReservationCleanup = (reservationId: string, expiresAt: Date, eventId: string, seatNumbers: number[]) => {
+  const delay = expiresAt.getTime() - Date.now();
+  
+  setTimeout(async () => {
+    const reservation = await Reservation.findById(reservationId);
+    
+    // only clean if reservation still exists (not already booked)
+    if (reservation) {
+      await Seat.updateMany(
+        { eventId: new mongoose.Types.ObjectId(eventId), seatNumber: { $in: seatNumbers } },
+        { $set: { status: "available" } }
+      );
+      await Reservation.deleteOne({ _id: reservationId });
+      console.log("cleaned expired reservation:", reservationId);
+    }
+  }, delay);
+};
 
 export const reserveSeats = asyncHandler(
   async (req: AuthRequest, res: Response) => {
@@ -87,6 +104,12 @@ export const reserveSeats = asyncHandler(
       );
 
       await session.commitTransaction();
+      scheduleReservationCleanup(
+        reservation!._id.toString(),
+        expiresAt,
+        eventId,
+        seatNumbers,
+      );
 
       res.status(201).json({
         success: true,

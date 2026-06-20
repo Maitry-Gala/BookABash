@@ -39,16 +39,49 @@ export const EventDetail = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const res = await api.get(`/events/${id}`);
-        setEvent(res.data.data.event);
-        setSeats(res.data.data.seats);
+        const eventRes = await api.get(`/events/${id}`);
+        setEvent(eventRes.data.data.event);
+        setSeats(eventRes.data.data.seats);
       } catch (err: any) {
         setError(err.response?.data?.message || "Failed to load event");
+        setLoading(false);
+        return;
+      }
+
+      // separate try — reservation failure shouldn't block page load
+      try {
+        const reservationRes = await api.get(`/reserve/${id}`);
+        const existing = reservationRes.data.data;
+        if (existing) {
+          setReservation({
+            reservationId: existing._id,
+            seatNumbers: existing.seatNumbers,
+            expiresAt: existing.expiresAt,
+          });
+          setSelectedSeats(existing.seatNumbers);
+        }
+      } catch {
+        // silently ignore — user just has no active reservation
       } finally {
         setLoading(false);
       }
     };
+
     fetchEvent();
+  }, [id]);
+
+  // auto refresh seats every 30 seconds to catch expiry updates
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/events/${id}`);
+        setSeats(res.data.data.seats);
+      } catch {
+        // silently ignore
+      }
+    }, 30 * 1000);
+
+    return () => clearInterval(interval); // cleanup on unmount
   }, [id]);
 
   const handleSeatClick = (seatNumber: number) => {
@@ -56,7 +89,7 @@ export const EventDetail = () => {
     setSelectedSeats((prev) =>
       prev.includes(seatNumber)
         ? prev.filter((s) => s !== seatNumber)
-        : [...prev, seatNumber]
+        : [...prev, seatNumber],
     );
     setError("");
   };
@@ -69,7 +102,10 @@ export const EventDetail = () => {
     setReserving(true);
     setError("");
     try {
-      const res = await api.post("/reserve", { eventId: id, seatNumbers: selectedSeats });
+      const res = await api.post("/reserve", {
+        eventId: id,
+        seatNumbers: selectedSeats,
+      });
       setReservation(res.data.data);
     } catch (err: any) {
       const data = err.response?.data;
@@ -80,11 +116,11 @@ export const EventDetail = () => {
           prev.map((s) =>
             data.unavailableSeats.includes(s.seatNumber)
               ? { ...s, status: "reserved" }
-              : s
-          )
+              : s,
+          ),
         );
         setSelectedSeats((prev) =>
-          prev.filter((s) => !data.unavailableSeats.includes(s))
+          prev.filter((s) => !data.unavailableSeats.includes(s)),
         );
       }
     } finally {
@@ -103,7 +139,9 @@ export const EventDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-purple-50 flex items-center justify-center">
-        <p className="text-purple-600 animate-pulse font-medium">Loading event...</p>
+        <p className="text-purple-600 animate-pulse font-medium">
+          Loading event...
+        </p>
       </div>
     );
   }
@@ -119,7 +157,6 @@ export const EventDetail = () => {
   return (
     <div className="min-h-screen bg-purple-50 px-4 py-10">
       <div className="max-w-4xl mx-auto">
-
         {/* back */}
         <button
           onClick={() => navigate("/")}
@@ -147,32 +184,44 @@ export const EventDetail = () => {
         {/* seat grid */}
         <div className="bg-white rounded-2xl border border-purple-100 px-6 py-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-indigo-900">Select Seats</h2>
+            <h2 className="text-lg font-semibold text-indigo-900">
+              Select Seats
+            </h2>
             {reservation && (
-              <CountdownTimer expiresAt={reservation.expiresAt} onExpire={handleExpire} />
+              <CountdownTimer
+                expiresAt={reservation.expiresAt}
+                onExpire={handleExpire}
+              />
             )}
           </div>
-          <SeatGrid seats={seats} selectedSeats={selectedSeats} onSeatClick={handleSeatClick} />
+          <SeatGrid
+            seats={seats}
+            selectedSeats={selectedSeats}
+            onSeatClick={handleSeatClick}
+          />
         </div>
 
         {/* error */}
-        {error && (
-          <p className="text-sm text-red-500 mb-4">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
 
         {/* action bar */}
         <div className="bg-white rounded-2xl border border-purple-100 px-6 py-4 flex items-center justify-between">
           <div>
             {selectedSeats.length > 0 && !reservation && (
               <p className="text-sm text-indigo-900">
-                <span className="font-semibold">{selectedSeats.length}</span> seat{selectedSeats.length > 1 ? "s" : ""} selected:{" "}
-                <span className="text-purple-600 font-medium">{selectedSeats.sort((a, b) => a - b).join(", ")}</span>
+                <span className="font-semibold">{selectedSeats.length}</span>{" "}
+                seat{selectedSeats.length > 1 ? "s" : ""} selected:{" "}
+                <span className="text-purple-600 font-medium">
+                  {selectedSeats.sort((a, b) => a - b).join(", ")}
+                </span>
               </p>
             )}
             {reservation && (
               <p className="text-sm text-indigo-900">
                 Reserved seats:{" "}
-                <span className="text-purple-600 font-medium">{reservation.seatNumbers.sort((a, b) => a - b).join(", ")}</span>
+                <span className="text-purple-600 font-medium">
+                  {reservation.seatNumbers.sort((a, b) => a - b).join(", ")}
+                </span>
               </p>
             )}
             {selectedSeats.length === 0 && !reservation && (
@@ -191,7 +240,11 @@ export const EventDetail = () => {
               </button>
             ) : (
               <button
-                onClick={() => navigate("/booking/confirm", { state: { reservation, event } })}
+                onClick={() =>
+                  navigate("/booking/confirm", {
+                    state: { reservation, event },
+                  })
+                }
                 className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition"
               >
                 Confirm Booking →

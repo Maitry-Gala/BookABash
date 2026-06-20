@@ -28,8 +28,11 @@ app.get("/health", (req, res) => {
 // error handler — must be last
 app.use(errorHandler);
 
-// runs every minute, resets seats whose reservations have expired
-setInterval(async () => {
+
+async function main() {
+  await connectToMongoDB();
+
+  // one-time recovery on server start for any reservations that expired while server was down
   const expired = await Reservation.find({ expiresAt: { $lt: new Date() } });
   for (const res of expired) {
     await Seat.updateMany(
@@ -38,10 +41,11 @@ setInterval(async () => {
     );
     await Reservation.deleteOne({ _id: res._id });
   }
-}, 60 * 1000);
+  console.log(`Recovered ${expired.length} expired reservations on startup`);
 
-connectToMongoDB().then(() => {
   app.listen(PORT, () => {
-    console.log("Server running on port:", PORT);
+    console.log(`Server running on port ${PORT}`);
   });
-});
+}
+
+main();

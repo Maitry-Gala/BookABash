@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate,useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
@@ -11,7 +11,9 @@ interface FormData {
 }
 
 export const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+   const [searchParams] = useSearchParams();
+  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
+
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -20,9 +22,14 @@ export const Auth = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+ 
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+  setIsLogin(searchParams.get("mode") !== "signup");
+}, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));

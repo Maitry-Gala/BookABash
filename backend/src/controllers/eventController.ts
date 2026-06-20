@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Event } from "../config/db.js";
 import mongoose from "mongoose";
-import { Seat } from "../config/db.js";
+import { Seat, Reservation } from "../config/db.js";
+import { AuthRequest } from "../middleware/auth.js";
 
 export const getAllEvents = asyncHandler(
   async (req: Request, res: Response) => {
@@ -32,6 +33,26 @@ export const getEventById = asyncHandler(
       .sort({ seatNumber: 1 });
 
     res.status(200).json({ success: true, data: { event, seats } });
+  },
+);
+export const getActiveReservation = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const { eventId } = req.params;
+    const userId = req.userId!;
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: "Event ID is required",
+      });
+    }
+
+    const reservation = await Reservation.findOne({
+      userId,
+      eventId,
+      expiresAt: { $gt: new Date() },
+    });
+
+    res.status(200).json({ success: true, data: reservation });
   },
 );
 
