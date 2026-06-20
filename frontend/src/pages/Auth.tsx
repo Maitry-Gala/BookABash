@@ -13,7 +13,6 @@ interface FormData {
 export const Auth = () => {
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
-
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
@@ -47,13 +46,12 @@ export const Auth = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!validate()) return;
-    setLoading(true);
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError("");
   };
 
   const handleSubmit = async () => {
+    if (!validate()) return;
     setLoading(true);
     setError("");
 
@@ -76,7 +74,6 @@ export const Auth = () => {
   return (
     <div className="min-h-screen bg-purple-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-purple-100 w-full max-w-md p-8">
-        {/* header */}
         <h1 className="text-2xl font-bold text-indigo-900 mb-1">
           {isLogin ? "Welcome back" : "Create account"}
         </h1>
@@ -84,7 +81,6 @@ export const Auth = () => {
           {isLogin ? "Sign in to book your seats" : "Sign up to get started"}
         </p>
 
-        {/* fields */}
         <div className="flex flex-col gap-3">
           {!isLogin && (
             <div className="flex gap-3">
@@ -124,10 +120,8 @@ export const Auth = () => {
           />
         </div>
 
-        {/* error */}
         {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
 
-        {/* submit */}
         <button
           onClick={handleSubmit}
           disabled={loading}
@@ -136,7 +130,6 @@ export const Auth = () => {
           {loading ? "Please wait..." : isLogin ? "Sign in" : "Sign up"}
         </button>
 
-        {/* toggle */}
         <p className="text-sm text-center text-gray-500 mt-4">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <span
