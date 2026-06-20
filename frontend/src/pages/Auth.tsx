@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate,useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 
@@ -11,7 +11,7 @@ interface FormData {
 }
 
 export const Auth = () => {
-   const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
 
   const [formData, setFormData] = useState<FormData>({
@@ -22,16 +22,33 @@ export const Auth = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
- 
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-  setIsLogin(searchParams.get("mode") !== "signup");
-}, [searchParams]);
+    setIsLogin(searchParams.get("mode") !== "signup");
+  }, [searchParams]);
+
+  const validate = () => {
+    if (!formData.email.includes("@")) {
+      setError("Enter a valid email");
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    if (!isLogin && !formData.firstName.trim()) {
+      setError("First name is required");
+      return false;
+    }
+    return true;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!validate()) return;
+    setLoading(true);
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError("");
   };
@@ -59,7 +76,6 @@ export const Auth = () => {
   return (
     <div className="min-h-screen bg-purple-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-purple-100 w-full max-w-md p-8">
-
         {/* header */}
         <h1 className="text-2xl font-bold text-indigo-900 mb-1">
           {isLogin ? "Welcome back" : "Create account"}
@@ -109,9 +125,7 @@ export const Auth = () => {
         </div>
 
         {/* error */}
-        {error && (
-          <p className="text-sm text-red-500 mt-3">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
 
         {/* submit */}
         <button
@@ -126,7 +140,10 @@ export const Auth = () => {
         <p className="text-sm text-center text-gray-500 mt-4">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
           <span
-            onClick={() => { setIsLogin(!isLogin); setError(""); }}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setError("");
+            }}
             className="text-purple-600 font-medium cursor-pointer hover:underline"
           >
             {isLogin ? "Sign up" : "Sign in"}
