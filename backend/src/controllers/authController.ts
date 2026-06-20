@@ -6,23 +6,22 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { z } from "zod";
 
 const signupSchema = z.object({
-  email: z.string().min(3).max(25).email(),
+  email: z.string().min(3, "Email too short").max(25, "Email too long").email("Enter a valid email"),
   password: z
     .string()
-    .min(6)
-    .max(10)
-    .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[@!$%*?&])[A-Za-z\d@!$%*?&]+$/),
-  firstName: z.string().min(3).max(10),
-  lastName: z.string().min(3).max(10),
+    .min(6, "Password must be at least 6 characters")
+    .max(10, "Password must be at most 10 characters")
+    .regex(
+      /^(?=.*[A-Z])(?=.*[a-z])(?=.*[@!$%*?&])[A-Za-z\d@!$%*?&]+$/,
+      "Password must contain uppercase, lowercase and a special character (@!$%*?&)"
+    ),
+  firstName: z.string().min(3, "First name must be at least 3 characters").max(10, "First name too long"),
+  lastName: z.string().min(3, "Last name must be at least 3 characters").max(10, "Last name too long"),
 });
 
 const loginSchema = z.object({
-  email: z.string().min(3).max(25).email(),
-  password: z
-    .string()
-    .min(6)
-    .max(10)
-    .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[@!$%*?&])[A-Za-z\d@!$%*?&]+$/),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 export const signup = asyncHandler(async (req: Request, res: Response) => {
@@ -30,7 +29,7 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
   if (!parsed.success) {
     return res
       .status(400)
-      .json({ success: false, message: "Validation failed" });
+      .json({ success: false, message: parsed.error?.issues?.[0]?.message || "Validation failed" });
   }
 
   const { email, password, firstName, lastName } = parsed.data;
@@ -60,7 +59,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   if (!parsed.success) {
     return res
       .status(400)
-      .json({ success: false, message: "Validation failed" });
+      .json({ success: false, message: parsed.error?.issues?.[0]?.message || "Validation failed" });
   }
 
   const { email, password } = parsed.data;
